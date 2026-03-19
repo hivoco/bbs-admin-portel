@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --color-amway: #2C2C2C;
+  --color-amway-light: #3d3d3d;
+  --color-amway-accent: #A65523;
+  --color-amway-accent-light: #c06a35;
+  --color-amway-cream: #FFF1E8;
+  --color-amway-blue: #38539A;
+  --color-amway-green: #356834;
+  --color-amway-bg: #f7f5f2;
+  --animate-slide-in: slide-in 0.3s ease-out;
+}
+
+@keyframes slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
