@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
+    allowedHosts: ['bbs.thefirstimpression.ai'],
     proxy: {
       '/api': 'http://localhost:8000',
       // Only proxy /scan/{uuid} — not /scanner or /scan-history
