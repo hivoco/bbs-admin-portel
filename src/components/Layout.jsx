@@ -18,7 +18,8 @@ function useNotifications() {
 
     let es
     function connect() {
-      es = new EventSource(`/api/notifications/stream?token=${token}`)
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '/api'
+      es = new EventSource(`${baseUrl}/notifications/stream?token=${token}`)
 
       es.onmessage = (event) => {
         try {
