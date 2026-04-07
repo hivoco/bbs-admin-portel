@@ -5,6 +5,7 @@ import SuperAdminDashboard from './pages/SuperAdminDashboard'
 import SuperAdminOrders from './pages/SuperAdminOrders'
 import SuperAdminABOs from './pages/SuperAdminABOs'
 import SuperAdminAnalytics from './pages/SuperAdminAnalytics'
+import SuperAdminCancellations from './pages/SuperAdminCancellations'
 import EventAdminScanner from './pages/EventAdminScanner'
 import ScanHistory from './pages/ScanHistory'
 import Layout from './components/Layout'
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="orders" element={<SuperAdminOrders />} />
         <Route path="abos" element={<SuperAdminABOs />} />
         <Route path="analytics" element={<SuperAdminAnalytics />} />
+        <Route path="cancellations" element={<SuperAdminCancellations />} />
       </Route>
 
       {/* Event Admin + Scanner */}

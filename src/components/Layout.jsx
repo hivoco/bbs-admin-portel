@@ -73,6 +73,7 @@ export default function Layout() {
       { to: '/admin/abos', label: 'ABOs' },
       { to: '/admin/orders', label: 'Orders' },
       { to: '/admin/analytics', label: 'Analytics' },
+      { to: '/admin/cancellations', label: 'Cancellations' },
       { to: '/scanner', label: 'Scanner' },
       { to: '/scan-history', label: 'Scan History' },
     ],

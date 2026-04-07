@@ -12,6 +12,7 @@ export default function SuperAdminOrders() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const [apiEnvFilter, setApiEnvFilter] = useState('')
 
   const fetchOrders = () => {
     setLoading(true)
@@ -20,6 +21,7 @@ export default function SuperAdminOrders() {
     if (dateFrom) params.append('date_from', dateFrom)
     if (dateTo) params.append('date_to', dateTo)
     if (statusFilter) params.append('status', statusFilter)
+    if (apiEnvFilter) params.append('api_env', apiEnvFilter)
 
     api.get(`/superadmin/orders?${params}`)
       .then(res => setOrders(res.data.data))
@@ -41,6 +43,7 @@ export default function SuperAdminOrders() {
     setDateFrom('')
     setDateTo('')
     setStatusFilter('')
+    setApiEnvFilter('')
     setExpandedOrder(null)
     setPasses([])
     setTimeout(fetchOrders, 0)
@@ -131,6 +134,18 @@ export default function SuperAdminOrders() {
               <option value="expired">Expired</option>
             </select>
           </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Source</label>
+            <select
+              value={apiEnvFilter}
+              onChange={(e) => setApiEnvFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[130px]"
+            >
+              <option value="">All</option>
+              <option value="production">Production</option>
+              <option value="development">Development</option>
+            </select>
+          </div>
           <button
             type="submit"
             className="bg-amway-accent text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-amway-accent-light cursor-pointer"
@@ -166,6 +181,7 @@ export default function SuperAdminOrders() {
                   <th className="text-left px-4 py-3 font-medium">Passes</th>
                   <th className="text-left px-4 py-3 font-medium">Scanned</th>
                   <th className="text-left px-4 py-3 font-medium">Status</th>
+                  <th className="text-left px-4 py-3 font-medium">Source</th>
                   <th className="text-left px-4 py-3 font-medium">Date</th>
                   <th className="px-4 py-3"></th>
                 </tr>
@@ -193,6 +209,13 @@ export default function SuperAdminOrders() {
                         {order.processing_status}
                       </span>
                     </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        order.api_env === 'development' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {order.api_env === 'development' ? 'DEV' : 'PROD'}
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{order.created_at}</td>
                     <td className="px-4 py-3">
                       <button
@@ -206,7 +229,7 @@ export default function SuperAdminOrders() {
                 ))}
                 {expandedOrder && (
                   <tr>
-                    <td colSpan={10} className="px-4 py-3 bg-amway-cream/30">
+                    <td colSpan={11} className="px-4 py-3 bg-amway-cream/30">
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {passes.map((p) => (
                           <div key={p.pass_uuid} className="bg-white p-3 rounded-lg border border-gray-200 text-xs">
