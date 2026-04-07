@@ -242,8 +242,8 @@ export default function SuperAdminAnalytics() {
                 </thead>
                 <tbody>
                   {data.by_city.map((row, i) => {
-                    const attendance = s.scanned_passes && row.passes
-                      ? Math.round((s.scanned_passes / row.passes) * 100)
+                    const attendance = row.scanned && row.passes
+                      ? Math.round((row.scanned / row.passes) * 100)
                       : 0
                     return (
                       <tr key={row.city} className="border-t border-gray-100">
