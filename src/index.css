@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-amway: #2C2C2C;
-  --color-amway-light: #3d3d3d;
-  --color-amway-accent: #A65523;
-  --color-amway-accent-light: #c06a35;
-  --color-amway-cream: #FFF1E8;
-  --color-amway-blue: #38539A;
+  --color-amway: #283957;
+  --color-amway-light: #3d5a8a;
+  --color-amway-accent: #283957;
+  --color-amway-accent-light: #3d5a8a;
+  --color-amway-cream: #f0f4fa;
+  --color-amway-blue: #283957;
   --color-amway-green: #356834;
-  --color-amway-bg: #f7f5f2;
+  --color-amway-bg: #f0f2f5;
   --animate-slide-in: slide-in 0.3s ease-out;
 }
 

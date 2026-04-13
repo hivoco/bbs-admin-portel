@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-const AMWAY_LOGO = 'https://images.contentstack.io/v3/assets/blt7fba682eccffca60/blt7d28a4680a1da7c9/61653636c2ff901292ac8a52/Amway_Logo.png'
+const BBS_LOGO = 'https://videoforinteractivedemons.s3.ap-south-1.amazonaws.com/amway_qr/bbs_logo.png'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -32,8 +32,8 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-amway-cream">
       <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md border border-gray-100">
         <div className="text-center mb-8">
-          <img src={AMWAY_LOGO} alt="Amway" className="h-10 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-amway">BBS Ticket Portal</h1>
+          <img src={BBS_LOGO} alt="Business Building Seminar" className="h-20 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-amway">Admin Portal</h1>
           <p className="text-gray-500 mt-1 text-sm">Admin Sign In</p>
         </div>
 

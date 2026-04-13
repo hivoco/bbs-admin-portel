@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
-const AMWAY_LOGO = 'https://images.contentstack.io/v3/assets/blt7fba682eccffca60/blt7d28a4680a1da7c9/61653636c2ff901292ac8a52/Amway_Logo.png'
+const BBS_LOGO = 'https://videoforinteractivedemons.s3.ap-south-1.amazonaws.com/amway_qr/bbs_logo.png'
 
 function useNotifications() {
   const [toast, setToast] = useState(null)
@@ -29,9 +29,9 @@ function useNotifications() {
 
             // Browser desktop notification
             if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification('BBS Ticket - New Order', {
+              new Notification('BBS - New Order', {
                 body: msg,
-                icon: AMWAY_LOGO,
+                icon: BBS_LOGO,
               })
             }
 
@@ -92,8 +92,8 @@ export default function Layout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-14">
             <div className="flex items-center gap-1">
-              <img src={AMWAY_LOGO} alt="Amway" className="h-6 mr-4 invert brightness-200" />
-              <span className="text-white font-semibold mr-6 text-sm">BBS Tickets</span>
+              <img src={BBS_LOGO} alt="BBS" className="h-8 mr-4" />
+              <span className="text-white font-semibold mr-6 text-sm">BBS Admin</span>
               {links.map((link) => (
                 <Link
                   key={link.to}
