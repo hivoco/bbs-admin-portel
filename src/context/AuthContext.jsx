@@ -21,6 +21,7 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('scanner_city');
     setUser(null);
   };
 

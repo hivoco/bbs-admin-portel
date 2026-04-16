@@ -8,6 +8,8 @@ export default function EventAdminScanner() {
   const [scanResult, setScanResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [manualUuid, setManualUuid] = useState('')
+  const [selectedCity, setSelectedCity] = useState(() => localStorage.getItem('scanner_city') || '')
+  const [cities, setCities] = useState([])
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
   const [cameraActive, setCameraActive] = useState(false)
@@ -16,6 +18,9 @@ export default function EventAdminScanner() {
   const rafRef = useRef(null)
 
   useEffect(() => {
+    api.get('/cities')
+      .then(res => setCities(res.data.data || []))
+      .catch(err => console.error(err))
     return () => stopCamera()
   }, [])
 
@@ -24,7 +29,7 @@ export default function EventAdminScanner() {
     setLoading(true)
     setScanResult(null)
     try {
-      const res = await api.post('/admin/scan', { pass_uuid: uuid })
+      const res = await api.post('/admin/scan', { pass_uuid: uuid, event_city: selectedCity })
       setScanResult(res.data)
     } catch (err) {
       setScanResult({ ok: false, message: err.response?.data?.detail || 'Scan failed' })
@@ -134,18 +139,55 @@ export default function EventAdminScanner() {
     if (result.scan_status === 'already_used') return 'bg-yellow-50 border-yellow-300 text-yellow-800'
     if (result.scan_status === 'expired') return 'bg-orange-50 border-orange-300 text-orange-800'
     if (result.scan_status === 'cancelled') return 'bg-red-50 border-red-300 text-red-800'
+    if (result.scan_status === 'wrong_city') return 'bg-orange-50 border-orange-300 text-orange-800'
     return 'bg-red-50 border-red-300 text-red-800'
   }
 
   const resultIcon = (result) => {
     if (!result) return ''
     if (result.ok) return 'ENTRY ALLOWED'
+    if (result.scan_status === 'wrong_city') return 'WRONG CITY'
     return result.scan_status?.toUpperCase().replace('_', ' ') || 'ERROR'
+  }
+
+  if (!selectedCity) {
+    return (
+      <div className="max-w-lg mx-auto">
+        <h2 className="text-2xl font-bold text-amway mb-6">Select Your City</h2>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <p className="text-sm text-gray-500 mb-4">Select the city where you are present for scanning tickets.</p>
+          <div className="grid grid-cols-2 gap-3">
+            {cities.map((city) => (
+              <button
+                key={city}
+                onClick={() => { localStorage.setItem('scanner_city', city); setSelectedCity(city); }}
+                className="p-3 text-sm font-medium text-amway bg-gray-50 border border-gray-200 rounded-lg hover:bg-amway hover:text-white transition-all cursor-pointer"
+              >
+                {city}
+              </button>
+            ))}
+          </div>
+          {cities.length === 0 && <p className="text-center text-gray-400 py-4">Loading cities...</p>}
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="max-w-lg mx-auto">
-      <h2 className="text-2xl font-bold text-amway mb-6">QR Scanner</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-amway">QR Scanner</h2>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-500">City:</span>
+          <span className="bg-amway text-white px-3 py-1 rounded-full text-sm font-medium">{selectedCity}</span>
+          <button
+            onClick={() => { localStorage.removeItem('scanner_city'); setSelectedCity(''); stopCamera(); setScanResult(null); }}
+            className="text-xs text-gray-400 hover:text-red-500 cursor-pointer"
+          >
+            Change
+          </button>
+        </div>
+      </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="mb-4">

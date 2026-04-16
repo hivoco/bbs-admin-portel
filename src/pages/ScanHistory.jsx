@@ -1,22 +1,25 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
+import { useAuth } from '../context/AuthContext'
 
 export default function ScanHistory() {
+  const { user } = useAuth()
+  const isSuperAdmin = user?.role === 'super_admin'
   const [scans, setScans] = useState([])
   const [loading, setLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
 
   // Filters
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0])
   const [filterDateFrom, setFilterDateFrom] = useState('')
   const [filterDateTo, setFilterDateTo] = useState('')
   const [filterSearch, setFilterSearch] = useState('')
-  const [filterCity, setFilterCity] = useState('')
+  const [filterCity, setFilterCity] = useState(() => isSuperAdmin ? '' : (localStorage.getItem('scanner_city') || ''))
   const [useRange, setUseRange] = useState(false)
 
   useEffect(() => { fetchScans() }, [])
 
-  const fetchScans = () => {
-    setLoading(true)
+  const buildParams = () => {
     const params = new URLSearchParams()
     if (useRange) {
       if (filterDateFrom) params.append('date_from', filterDateFrom)
@@ -26,8 +29,12 @@ export default function ScanHistory() {
     }
     if (filterSearch) params.append('search', filterSearch)
     if (filterCity) params.append('event_city', filterCity)
+    return params
+  }
 
-    api.get(`/admin/scans?${params}`)
+  const fetchScans = () => {
+    setLoading(true)
+    api.get(`/admin/scans?${buildParams()}`)
       .then(res => setScans(res.data.data))
       .catch(err => console.error(err))
       .finally(() => setLoading(false))
@@ -43,14 +50,47 @@ export default function ScanHistory() {
     setFilterDateFrom('')
     setFilterDateTo('')
     setFilterSearch('')
-    setFilterCity('')
+    setFilterCity(isSuperAdmin ? '' : (localStorage.getItem('scanner_city') || ''))
     setUseRange(false)
     setTimeout(fetchScans, 0)
   }
 
+  const handleExport = async () => {
+    setExporting(true)
+    try {
+      const res = await api.get(`/admin/scans/export?${buildParams()}`, { responseType: 'blob' })
+      const url = window.URL.createObjectURL(new Blob([res.data]))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'scan_history_export.xlsx'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Export failed:', err)
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div>
-      <h2 className="text-2xl font-bold text-amway mb-4">Scan History</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold text-amway">Scan History</h2>
+        {isSuperAdmin && (
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="flex items-center gap-2 bg-amway text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-amway-light disabled:opacity-50 cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+            </svg>
+            {exporting ? 'Exporting...' : 'Export Excel'}
+          </button>
+        )}
+      </div>
 
       {/* Filters */}
       <form onSubmit={handleFilter} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
@@ -61,20 +101,22 @@ export default function ScanHistory() {
               type="text"
               value={filterSearch}
               onChange={(e) => setFilterSearch(e.target.value)}
-              placeholder="ABO number, name or pass ID"
+              placeholder="ABO number or pass ID"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amway-accent outline-none"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">City</label>
-            <input
-              type="text"
-              value={filterCity}
-              onChange={(e) => setFilterCity(e.target.value)}
-              placeholder="Filter by city"
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[140px]"
-            />
-          </div>
+          {isSuperAdmin && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">City</label>
+              <input
+                type="text"
+                value={filterCity}
+                onChange={(e) => setFilterCity(e.target.value)}
+                placeholder="Filter by city"
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm min-w-[140px]"
+              />
+            </div>
+          )}
 
           {/* Date toggle */}
           <div>
@@ -159,7 +201,6 @@ export default function ScanHistory() {
                 <tr>
                   <th className="text-left px-4 py-3 font-medium">Pass ID</th>
                   <th className="text-left px-4 py-3 font-medium">ABO Number</th>
-                  <th className="text-left px-4 py-3 font-medium">ABO Name</th>
                   <th className="text-left px-4 py-3 font-medium">City</th>
                   <th className="text-left px-4 py-3 font-medium">Venue</th>
                   <th className="text-left px-4 py-3 font-medium">Scanned By</th>
@@ -172,7 +213,6 @@ export default function ScanHistory() {
                   <tr key={scan.id} className="hover:bg-amway-cream/40">
                     <td className="px-4 py-3 font-medium text-amway">{scan.pass_code}</td>
                     <td className="px-4 py-3">{scan.abo_number}</td>
-                    <td className="px-4 py-3">{scan.abo_name}</td>
                     <td className="px-4 py-3">{scan.event_city}</td>
                     <td className="px-4 py-3 text-gray-500">{scan.venue || '-'}</td>
                     <td className="px-4 py-3 text-gray-500">{scan.scanned_by}</td>
