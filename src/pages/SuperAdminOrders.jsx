@@ -227,37 +227,56 @@ export default function SuperAdminOrders() {
                     </td>
                   </tr>
                 ))}
-                {expandedOrder && (
-                  <tr>
-                    <td colSpan={11} className="px-4 py-3 bg-amway-cream/30">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {passes.map((p) => (
-                          <div key={p.pass_uuid} className="bg-white p-3 rounded-lg border border-gray-200 text-xs">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="font-medium text-amway">{p.pass_id}</p>
-                                <p className="text-gray-500">{p.pass_name || p.name}</p>
-                                <p className="text-gray-500">{p.event_city} {p.venue && `- ${p.venue}`}</p>
-                              </div>
-                              <span className={`px-2 py-0.5 rounded-full text-xs ${passStatusBadge(p.status)}`}>
-                                {p.status}
-                              </span>
-                            </div>
-                            {p.event_date && <p className="text-gray-400 text-xs mt-1">Event: {p.event_date}</p>}
-                            {p.used_at && <p className="text-gray-400 text-xs mt-1">Used: {p.used_at}</p>}
-                            {p.qr_image_url && (
-                              <img src={p.qr_image_url} alt="QR" className="w-20 h-20 mt-2 mx-auto" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
           {orders.length === 0 && <p className="text-center py-8 text-gray-400">No orders found</p>}
+        </div>
+      )}
+
+      {/* Passes Modal */}
+      {expandedOrder && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => { setExpandedOrder(null); setPasses([]); }}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-5 border-b border-gray-200">
+              <h3 className="text-lg font-bold text-amway">Order #{expandedOrder} — Passes</h3>
+              <button
+                onClick={() => { setExpandedOrder(null); setPasses([]); }}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {passes.map((p) => (
+                <div key={p.pass_uuid} className="bg-gray-50 p-4 rounded-xl border border-gray-200 text-xs">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-semibold text-amway text-sm">{p.pass_id}</p>
+                      <p className="text-gray-500">{p.pass_name || p.name}</p>
+                      <p className="text-gray-500">{p.event_city} {p.venue && `- ${p.venue}`}</p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${passStatusBadge(p.status)}`}>
+                      {p.status}
+                    </span>
+                  </div>
+                  {p.event_date && <p className="text-gray-400 text-xs">Event: {p.event_date}</p>}
+                  {p.used_at && <p className="text-gray-400 text-xs">Used: {p.used_at}</p>}
+                  {p.qr_image_url && (
+                    <img src={p.qr_image_url} alt="QR" className="w-24 h-24 mt-3 mx-auto" />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>
