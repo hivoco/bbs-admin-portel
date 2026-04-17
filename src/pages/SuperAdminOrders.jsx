@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
 
+const TICKET_BASE_URL = 'https://api.bbs.thefirstimpression.ai'
+
 export default function SuperAdminOrders() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [expandedOrder, setExpandedOrder] = useState(null)
+  const [expandedExternalId, setExpandedExternalId] = useState('')
   const [passes, setPasses] = useState([])
+  const [copyStatus, setCopyStatus] = useState('')
 
   // Filters
   const [search, setSearch] = useState('')
@@ -34,6 +38,7 @@ export default function SuperAdminOrders() {
   const handleFilter = (e) => {
     e.preventDefault()
     setExpandedOrder(null)
+    setExpandedExternalId('')
     setPasses([])
     fetchOrders()
   }
@@ -45,13 +50,15 @@ export default function SuperAdminOrders() {
     setStatusFilter('')
     setApiEnvFilter('')
     setExpandedOrder(null)
+    setExpandedExternalId('')
     setPasses([])
     setTimeout(fetchOrders, 0)
   }
 
-  const togglePasses = async (orderId) => {
+  const togglePasses = async (orderId, externalOrderId) => {
     if (expandedOrder === orderId) {
       setExpandedOrder(null)
+      setExpandedExternalId('')
       setPasses([])
       return
     }
@@ -59,8 +66,21 @@ export default function SuperAdminOrders() {
       const res = await api.get(`/superadmin/orders/${orderId}/passes`)
       setPasses(res.data.data)
       setExpandedOrder(orderId)
+      setExpandedExternalId(externalOrderId || '')
     } catch (err) {
       console.error(err)
+    }
+  }
+
+  const copyDownloadUrl = async () => {
+    if (!expandedExternalId) return
+    const url = `${TICKET_BASE_URL}/tickets/${expandedExternalId}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopyStatus('Copied!')
+      setTimeout(() => setCopyStatus(''), 2000)
+    } catch {
+      window.prompt('Copy this URL:', url)
     }
   }
 
@@ -219,7 +239,7 @@ export default function SuperAdminOrders() {
                     <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{order.created_at}</td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => togglePasses(order.id)}
+                        onClick={() => togglePasses(order.id, order.external_order_id)}
                         className="text-amway-accent hover:text-amway-accent-light text-xs font-medium cursor-pointer"
                       >
                         {expandedOrder === order.id ? 'Hide' : 'View'}
@@ -238,22 +258,36 @@ export default function SuperAdminOrders() {
       {expandedOrder && (
         <div
           className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-          onClick={() => { setExpandedOrder(null); setPasses([]); }}
+          onClick={() => { setExpandedOrder(null); setExpandedExternalId(''); setPasses([]); }}
         >
           <div
             className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-5 border-b border-gray-200">
+            <div className="flex items-center justify-between p-5 border-b border-gray-200 gap-3">
               <h3 className="text-lg font-bold text-amway">Order #{expandedOrder} — Passes</h3>
-              <button
-                onClick={() => { setExpandedOrder(null); setPasses([]); }}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="flex items-center gap-2">
+                {expandedExternalId && (
+                  <button
+                    onClick={copyDownloadUrl}
+                    className="flex items-center gap-1.5 bg-amway-accent text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-amway-accent-light cursor-pointer"
+                    title={`${TICKET_BASE_URL}/tickets/${expandedExternalId}`}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" />
+                    </svg>
+                    {copyStatus || 'Copy Download URL'}
+                  </button>
+                )}
+                <button
+                  onClick={() => { setExpandedOrder(null); setExpandedExternalId(''); setPasses([]); }}
+                  className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
               {passes.map((p) => (
