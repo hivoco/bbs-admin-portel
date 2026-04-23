@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react'
 import api from '../utils/api'
+import Pagination from '../components/Pagination'
+
+const PAGE_SIZE = 20
 
 export default function SuperAdminCancellations() {
   const [requests, setRequests] = useState([])
@@ -11,21 +14,25 @@ export default function SuperAdminCancellations() {
   const [loadingPasses, setLoadingPasses] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [message, setMessage] = useState(null)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
 
   const fetchRequests = async () => {
     setLoading(true)
     try {
-      const params = {}
+      const params = { page, page_size: PAGE_SIZE }
       if (statusFilter) params.status = statusFilter
       const res = await api.get('/superadmin/cancellation-requests', { params })
       setRequests(res.data.data || [])
+      setTotal(res.data.total || 0)
     } catch (e) {
       console.error('Failed to fetch cancellation requests', e)
     }
     setLoading(false)
   }
 
-  useEffect(() => { fetchRequests() }, [statusFilter])
+  useEffect(() => { fetchRequests() }, [statusFilter, page])
+  useEffect(() => { if (page !== 1) setPage(1) }, [statusFilter])
 
   const openRequest = async (req) => {
     setSelectedRequest(req)
@@ -111,7 +118,7 @@ export default function SuperAdminCancellations() {
         {/* Left: Requests list */}
         <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
           <div className="px-4 py-3 bg-gray-50 border-b">
-            <h2 className="text-sm font-semibold text-gray-700">Requests ({requests.length})</h2>
+            <h2 className="text-sm font-semibold text-gray-700">Requests ({total})</h2>
           </div>
           {loading ? (
             <div className="p-8 text-center text-gray-400">Loading...</div>
@@ -147,6 +154,7 @@ export default function SuperAdminCancellations() {
               ))}
             </div>
           )}
+          <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
         </div>
 
         {/* Right: Pass selection & cancel action */}

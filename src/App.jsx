@@ -6,6 +6,7 @@ import SuperAdminOrders from './pages/SuperAdminOrders'
 import SuperAdminABOs from './pages/SuperAdminABOs'
 import SuperAdminAnalytics from './pages/SuperAdminAnalytics'
 import SuperAdminCancellations from './pages/SuperAdminCancellations'
+import SuperAdminWhatsappLogs from './pages/SuperAdminWhatsappLogs'
 import EventAdminScanner from './pages/EventAdminScanner'
 import ScanHistory from './pages/ScanHistory'
 import Layout from './components/Layout'
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="abos" element={<SuperAdminABOs />} />
         <Route path="analytics" element={<SuperAdminAnalytics />} />
         <Route path="cancellations" element={<SuperAdminCancellations />} />
+        <Route path="whatsapp-logs" element={<SuperAdminWhatsappLogs />} />
       </Route>
 
       {/* Event Admin + Scanner */}

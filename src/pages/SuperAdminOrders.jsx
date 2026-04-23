@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
+import Pagination from '../components/Pagination'
 
 const TICKET_BASE_URL = 'https://api.bbs.thefirstimpression.ai'
+const PAGE_SIZE = 20
 
 export default function SuperAdminOrders() {
   const [orders, setOrders] = useState([])
@@ -10,6 +12,8 @@ export default function SuperAdminOrders() {
   const [expandedExternalId, setExpandedExternalId] = useState('')
   const [passes, setPasses] = useState([])
   const [copyStatus, setCopyStatus] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
 
   // Filters
   const [search, setSearch] = useState('')
@@ -18,7 +22,7 @@ export default function SuperAdminOrders() {
   const [statusFilter, setStatusFilter] = useState('')
   const [apiEnvFilter, setApiEnvFilter] = useState('')
 
-  const fetchOrders = () => {
+  const fetchOrders = (targetPage = page) => {
     setLoading(true)
     const params = new URLSearchParams()
     if (search) params.append('search', search)
@@ -26,21 +30,27 @@ export default function SuperAdminOrders() {
     if (dateTo) params.append('date_to', dateTo)
     if (statusFilter) params.append('status', statusFilter)
     if (apiEnvFilter) params.append('api_env', apiEnvFilter)
+    params.append('page', targetPage)
+    params.append('page_size', PAGE_SIZE)
 
     api.get(`/superadmin/orders?${params}`)
-      .then(res => setOrders(res.data.data))
+      .then(res => {
+        setOrders(res.data.data)
+        setTotal(res.data.total || 0)
+      })
       .catch(err => console.error(err))
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { fetchOrders() }, [])
+  useEffect(() => { fetchOrders(page) }, [page])
 
   const handleFilter = (e) => {
     e.preventDefault()
     setExpandedOrder(null)
     setExpandedExternalId('')
     setPasses([])
-    fetchOrders()
+    if (page !== 1) setPage(1)
+    else fetchOrders(1)
   }
 
   const handleReset = () => {
@@ -52,7 +62,8 @@ export default function SuperAdminOrders() {
     setExpandedOrder(null)
     setExpandedExternalId('')
     setPasses([])
-    setTimeout(fetchOrders, 0)
+    if (page !== 1) setPage(1)
+    else setTimeout(() => fetchOrders(1), 0)
   }
 
   const togglePasses = async (orderId, externalOrderId) => {
@@ -117,7 +128,7 @@ export default function SuperAdminOrders() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="ABO number, name, email or phone"
+              placeholder="ABO, name, email, phone or order ID"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amway-accent outline-none"
             />
           </div>
@@ -183,7 +194,7 @@ export default function SuperAdminOrders() {
       </form>
 
       {/* Results count */}
-      <p className="text-sm text-gray-500 mb-2">{orders.length} order{orders.length !== 1 ? 's' : ''} found</p>
+      <p className="text-sm text-gray-500 mb-2">{total} order{total !== 1 ? 's' : ''} found</p>
 
       {loading ? (
         <div className="text-center py-12 text-gray-500">Loading...</div>
@@ -251,6 +262,7 @@ export default function SuperAdminOrders() {
             </table>
           </div>
           {orders.length === 0 && <p className="text-center py-8 text-gray-400">No orders found</p>}
+          <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
         </div>
       )}
 

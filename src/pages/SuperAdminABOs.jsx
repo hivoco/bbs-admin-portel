@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
+import Pagination from '../components/Pagination'
+
+const PAGE_SIZE = 20
 
 export default function SuperAdminABOs() {
   const [abos, setAbos] = useState([])
@@ -7,14 +10,33 @@ export default function SuperAdminABOs() {
   const [selectedAbo, setSelectedAbo] = useState(null)
   const [passes, setPasses] = useState([])
   const [passesLoading, setPassesLoading] = useState(false)
-  const [filter, setFilter] = useState('all') // all, active, used
+  const [filter, setFilter] = useState('all')
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
 
-  useEffect(() => {
-    api.get('/superadmin/abos')
-      .then(res => setAbos(res.data.data))
+  const fetchAbos = (targetPage = page, targetSearch = search) => {
+    setLoading(true)
+    const params = new URLSearchParams()
+    if (targetSearch) params.append('search', targetSearch)
+    params.append('page', targetPage)
+    params.append('page_size', PAGE_SIZE)
+    api.get(`/superadmin/abos?${params}`)
+      .then(res => {
+        setAbos(res.data.data)
+        setTotal(res.data.total || 0)
+      })
       .catch(err => console.error(err))
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { fetchAbos(page, search) }, [page])
+
+  const handleSearch = (e) => {
+    e.preventDefault()
+    if (page !== 1) setPage(1)
+    else fetchAbos(1, search)
+  }
 
   const selectAbo = async (abo) => {
     if (selectedAbo?.abo_number === abo.abo_number) {
@@ -41,20 +63,42 @@ export default function SuperAdminABOs() {
     return true
   })
 
-  if (loading) return <div className="text-center py-12 text-gray-500">Loading...</div>
-
   return (
     <div>
-      <h2 className="text-2xl font-bold text-amway mb-6">ABO List</h2>
+      <h2 className="text-2xl font-bold text-amway mb-4">ABO List</h2>
+
+      <form onSubmit={handleSearch} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+        <div className="flex gap-3 items-end">
+          <div className="flex-1">
+            <label className="block text-xs font-medium text-gray-500 mb-1">Search</label>
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="ABO number, name, email or phone"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amway-accent outline-none"
+            />
+          </div>
+          <button type="submit" className="bg-amway-accent text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-amway-accent-light cursor-pointer">
+            Apply
+          </button>
+          <button type="button" onClick={() => { setSearch(''); if (page !== 1) setPage(1); else fetchAbos(1, '') }} className="text-gray-500 hover:text-amway px-3 py-2 text-sm cursor-pointer">
+            Reset
+          </button>
+        </div>
+      </form>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* ABO List */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="bg-amway px-4 py-3">
-              <p className="text-white font-medium text-sm">{abos.length} ABOs</p>
+              <p className="text-white font-medium text-sm">{total} ABOs</p>
             </div>
-            <div className="divide-y divide-gray-100 max-h-[70vh] overflow-y-auto">
+            {loading ? (
+              <p className="text-center py-8 text-gray-400 text-sm">Loading...</p>
+            ) : (
+            <div className="divide-y divide-gray-100 max-h-[65vh] overflow-y-auto">
               {abos.map((abo) => (
                 <button
                   key={abo.abo_number}
@@ -89,6 +133,8 @@ export default function SuperAdminABOs() {
                 <p className="text-center py-8 text-gray-400 text-sm">No ABOs found</p>
               )}
             </div>
+            )}
+            <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
           </div>
         </div>
 

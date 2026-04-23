@@ -245,8 +245,6 @@ export default function EventAdminScanner() {
             {scanResult.data && (
               <div className="mt-2 text-sm space-y-1">
                 {scanResult.data.pass_id && <p>Pass: {scanResult.data.pass_id}</p>}
-                {scanResult.data.name && <p>Name: {scanResult.data.name}</p>}
-                {scanResult.data.abo_number && <p>ABO: {scanResult.data.abo_number}</p>}
                 {scanResult.data.event_city && <p>City: {scanResult.data.event_city}</p>}
                 {scanResult.data.event_date && <p>Event Date: {scanResult.data.event_date}</p>}
                 {scanResult.data.used_at && <p>Previously used: {scanResult.data.used_at}</p>}

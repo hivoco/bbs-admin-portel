@@ -75,6 +75,7 @@ export default function Layout() {
       { to: '/admin/orders', label: 'Orders' },
       { to: '/admin/analytics', label: 'Analytics' },
       { to: '/admin/cancellations', label: 'Cancellations' },
+      { to: '/admin/whatsapp-logs', label: 'WhatsApp Logs' },
       { to: '/scanner', label: 'Scanner' },
       { to: '/scan-history', label: 'Scan History' },
     ],

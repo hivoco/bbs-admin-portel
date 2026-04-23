@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import Pagination from '../components/Pagination'
+
+const PAGE_SIZE = 20
 
 export default function ScanHistory() {
   const { user } = useAuth()
@@ -8,6 +11,8 @@ export default function ScanHistory() {
   const [scans, setScans] = useState([])
   const [loading, setLoading] = useState(true)
   const [exporting, setExporting] = useState(false)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
 
   // Filters
   const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0])
@@ -17,7 +22,6 @@ export default function ScanHistory() {
   const [filterCity, setFilterCity] = useState(() => isSuperAdmin ? '' : (localStorage.getItem('scanner_city') || ''))
   const [useRange, setUseRange] = useState(false)
 
-  useEffect(() => { fetchScans() }, [])
 
   const buildParams = () => {
     const params = new URLSearchParams()
@@ -32,17 +36,26 @@ export default function ScanHistory() {
     return params
   }
 
-  const fetchScans = () => {
+  const fetchScans = (targetPage = page) => {
     setLoading(true)
-    api.get(`/admin/scans?${buildParams()}`)
-      .then(res => setScans(res.data.data))
+    const params = buildParams()
+    params.append('page', targetPage)
+    params.append('page_size', PAGE_SIZE)
+    api.get(`/admin/scans?${params}`)
+      .then(res => {
+        setScans(res.data.data)
+        setTotal(res.data.total || 0)
+      })
       .catch(err => console.error(err))
       .finally(() => setLoading(false))
   }
 
+  useEffect(() => { fetchScans(page) }, [page])
+
   const handleFilter = (e) => {
     e.preventDefault()
-    fetchScans()
+    if (page !== 1) setPage(1)
+    else fetchScans(1)
   }
 
   const handleReset = () => {
@@ -52,7 +65,8 @@ export default function ScanHistory() {
     setFilterSearch('')
     setFilterCity(isSuperAdmin ? '' : (localStorage.getItem('scanner_city') || ''))
     setUseRange(false)
-    setTimeout(fetchScans, 0)
+    if (page !== 1) setPage(1)
+    else setTimeout(() => fetchScans(1), 0)
   }
 
   const handleExport = async () => {
@@ -189,7 +203,7 @@ export default function ScanHistory() {
       </form>
 
       {/* Results count */}
-      <p className="text-sm text-gray-500 mb-2">{scans.length} scan{scans.length !== 1 ? 's' : ''} found</p>
+      <p className="text-sm text-gray-500 mb-2">{total} scan{total !== 1 ? 's' : ''} found</p>
 
       {loading ? (
         <div className="text-center py-12 text-gray-500">Loading...</div>
@@ -224,6 +238,7 @@ export default function ScanHistory() {
             </table>
           </div>
           {scans.length === 0 && <p className="text-center py-8 text-gray-400">No scans found</p>}
+          <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
         </div>
       )}
     </div>
